@@ -125,9 +125,18 @@ ggplot(dummy_data, aes(x = value, fill = group)) +
 #| layout-ncol: 2
 
 #..................histogram with all 12 months..................
+mko_clean %>% 
+  mutate(month_name = factor(month_name, levels = month.name)) %>%
+  ggplot(aes(x = Temp_bot, fill = month_name)) + 
+  geom_histogram(position = "identity", alpha = .4) + theme_bw() 
+
 
 #................density plot with all 12 months.................
-
+mko_clean %>% 
+  mutate(month_name = factor(month_name, levels = month.name)) %>%
+  ggplot(aes(x = Temp_bot)) + 
+  geom_density( alpha = .4, fill = "darkgrey") + theme_bw() + facet_wrap(~month_name)
+  
 ```
 
 ### Consider faceting (small multiples)
@@ -142,8 +151,10 @@ ggplot(dummy_data, aes(x = value, fill = group)) +
 #...................histogram faceted by month...................
 mko_clean |> 
   mutate(month_name = factor(month_name, levels = month.name)) |> 
+  filter(month_name %in% c("April", "June", "October")) %>%
   ggplot(aes(x = Temp_bot, fill = month_name)) +
-  geom_histogram(position = "identity", alpha = 0.5) 
+  geom_histogram(position = "identity", alpha = 0.5) + 
+  scale_fill_manual(values = c("#2C5374", "#ADD8E6", "#8B3A3A"))
 
 #..................density plot faceted by month.................
 mko_clean |> 
@@ -168,19 +179,26 @@ mko_clean |>
 #..................histogram with fewer months...................
 mko_clean |> 
   mutate(month_name = factor(month_name, levels = month.name)) |> 
-  ggplot(aes(x = Temp_bot, fill = month_name)) + 
-  geom_histogram(position = "identity", alpha = 0.5)
+  filter(month_name %in% c("April", "June", "October")) %>%
+  ggplot(aes(x = Temp_bot, fill = month_name)) +
+  geom_histogram(position = "identity", alpha = 0.7, col = "darkgrey", binwidth = 1) + 
+  scale_fill_manual(values = c("#2C5374", "#ADD8E6", "#8B3A3A")) + 
+  theme_bw()
+ 
 
 #.................density plot with fewer months.................
 mko_clean |> 
+  filter(month_name %in% c("April", "June", "October")) %>%
   ggplot(aes(x = Temp_bot, fill = month_name)) +
-  geom_density(alpha = 0.5) 
+  geom_density(alpha = 0.5, adjust = .2) + theme_bw()
 ```
 
 ::: callout-note
 ## Question:
 
 Why are the months in our density plot still in chronological order, despite not reordering them using `mutate()` (as we do for our histogram)?
+
+R will order the levels alphabetically.
 :::
 
 ### Overlay histogram & density plots as a sanity check
@@ -188,7 +206,7 @@ Why are the months in our density plot still in chronological order, despite not
 ::: callout-note
 ## Question:
 
-What should you carefully consider when checking the smoothing asumptions of your density curve against a histogram?
+What should you carefully consider when checking the smoothing assumptions of your density curve against a histogram?
 :::
 
 ```{r overlay-hist-dens}
@@ -198,6 +216,7 @@ What should you carefully consider when checking the smoothing asumptions of you
 #| message: false
 
 #..................overlay histogram & density...................
+## good way to check if density is reflective of hist dist
 ```
 
 ## Ridgeline plots
@@ -214,6 +233,10 @@ What should you carefully consider when checking the smoothing asumptions of you
 # hex codes for updating colors: "#2C5374","#849BB4", "#D9E7EC", "#EF8080", "#8B3A3A"
 
 #......................basic ridgeline plot......................
+mko_clean %>% 
+  mutate(month_name = factor(month_name, levels = rev(month.name))) %>%
+  ggplot(aes(x = Temp_bot, y = month_name)) +
+  geom_density_ridges(rel_min_height = 0.001, scale = 3) + theme_ridges()
 
 #....................fill with color gradient....................
 ```
@@ -230,12 +253,20 @@ What should you carefully consider when checking the smoothing asumptions of you
 #| warning: false
 
 #...................boxplot with all 12 months...................
+ggplot(mko_clean, aes(x = month_name, y = Temp_bot)) + 
+  geom_boxplot() +
+  scale_x_discrete(limits = rev(month.name)) + 
+  gghighlight(month_name == "October") + 
+  theme(legend.position = "none") +
+  coord_flip()
 ```
 
 ::: callout-note
 ## Question:
 
 What are the tradeoffs between reordering groups within a ggplot (as above) vs. during the data wrangling stage (e.g. as we did for our histogram and density and ridgeline plots)?
+
+Benefits: Only way maps to ggplot... not changing original data...quick way of reorganizing.
 :::
 
 ### Overlay jittered data, if appropriate
@@ -249,10 +280,13 @@ What are the tradeoffs between reordering groups within a ggplot (as above) vs. 
 ggplot(mko_clean, aes(x = month_name, y = Temp_bot)) +
   geom_boxplot() + 
   scale_x_discrete(limits = rev(month.name)) + 
-  coord_flip()
+  coord_flip() + geom_jitter()
 
 #...........but great when you have fewer observations...........
-
+ggplot(penguins, aes(x = species, y = body_mass_g)) + 
+  geom_boxplot(outliers = F) + 
+  #scale_x_discrete(limits = rev(month.name)) + 
+  geom_jitter(alpha = .5)
 ```
 
 ### Beeswarm plots as an alternative
@@ -264,7 +298,8 @@ ggplot(mko_clean, aes(x = month_name, y = Temp_bot)) +
 
 #.......................boxplot + beeswarm.......................
 ggplot(penguins, aes(x = species, y = body_mass_g)) +
-  geom_boxplot(outlier.shape = NA)  
+  geom_boxplot(outlier.shape = NA)  +
+  geom_beeswarm(size = 1) # do not need boxplot; can be stand alone
 ```
 
 ### Dodge when you have an additional grouping variable
@@ -275,8 +310,10 @@ ggplot(penguins, aes(x = species, y = body_mass_g)) +
 #| warning: false
 
 #......................dodge groups by year......................
-ggplot(penguins, aes(x = species, y = body_mass_g)) +
-  geom_boxplot(outlier.shape = NA)
+ggplot(penguins, aes(x = species, y = body_mass_g, col = as.factor(year))) +
+  geom_boxplot(outlier.shape = NA) + 
+  theme_bw() + 
+  geom_point(alpha = .5, position = position_jitterdodge(jitter.width = .2))
 ```
 
 ## Violin plots
@@ -290,5 +327,8 @@ ggplot(penguins, aes(x = species, y = body_mass_g)) +
 #| warning: false
 
 #........................violin + box plot.......................
-
+ggplot(mko_clean, aes(x = month_name, y = Temp_bot)) +
+  geom_violin() + geom_boxplot(width = .1, fill = "grey30", alpha = .5) + 
+  scale_x_discrete(limits = rev(month.name)) + 
+  coord_flip()
 ```

@@ -1,0 +1,133 @@
+---
+title: "week-3-lab"
+format: html
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Setup
+
+```{r}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                    setup                                 ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#..........................load packages.........................
+library(tidyverse)
+
+#..........................import data...........................
+# drought <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2021/2021-07-20/drought.csv')
+drought <- read.csv(here::here("week3","data", "drought.csv"))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                            wrangle drought data                          ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+drought_clean <- drought |>
+  
+  # Pivot table to be in tidy form
+  pivot_longer(cols = None:D4, names_to = "drought_lvl",    values_to = "area_pct") |>
+  
+  janitor::clean_names() |>
+  
+  # Rename state abbreviation column
+   rename(state_abb = state_abbreviation) |>
+
+  # select cols of interest & update names for clarity (as needed) ----
+  select(date = valid_start, state_abb, drought_lvl, area_pct) |> 
+
+  # add year, month & day cols using {lubridate} fxns ----
+  # NOTE: this step isn't necessary for our plot, but I'm including as examples of how to extract different date elements from a object of class `Date` using {lubridate} ----
+  mutate(year = year(date),
+         month = month(date, label = TRUE, abbr = TRUE),
+         day = day(date)) |>
+
+  # add drought level conditions names ----
+  mutate(drought_lvl_long = factor(drought_lvl,
+                            levels = c("D4", "D3", "D2", "D1","D0", "None"),
+                            labels = c("(D4) Exceptional", "(D3) Extreme",
+                                       "(D2) Severe", "(D1) Moderate", 
+                                       "(D0) Abnormally Dry", 
+                                       "No Drought"))) |>
+  
+  # reorder cols ----
+  relocate(date, year, month, day, state_abb, drought_lvl, drought_lvl_long, area_pct)
+```
+
+```{r}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##       create stacked area plot of CA drought conditions through time     ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+drought_cols <- c(
+  D0 = "#FFFF00",
+  D1 = "#FCD37F",
+  D2 = "#FFAA00",
+  D3 = "#E60000",
+  D4 = "#730000"
+)
+
+drought_clean %>%
+  
+  # remove drought_lvl "None" & filter for just CA ----
+  filter(drought_lvl != "None",
+         state_abb == "CA") |> 
+ 
+   ggplot(aes(x = year,y = area_pct, group = drought_lvl, 
+              fill = fct_relevel(drought_lvl, c("D4", "D3", "D2", "D1", "D0")))) + 
+  
+  geom_area() +
+  
+  theme_minimal() + 
+  
+  labs(x = "Year", fill = " ", y = "", title = "Drought area in California") + 
+  
+  scale_y_continuous(labels = scales::label_percent(scale = 1), guide = guide_axis(minor.ticks = T)) +  
+  
+  scale_fill_manual(values = drought_cols) + 
+  
+  scale_x_continuous(
+    breaks = seq(from= 2000, to = 2026, by = 2), 
+    expand = c(0,NA)) +
+
+  theme(legend.position = "bottom", plot.title = element_text(family = "Arial", hjust = .5))
+
+  # pipe into ggplot here!
+
+```
+
+a.  Create a stacked area chart (take a look back at [lecture 2.3 slides](https://eds-240-data-viz.github.io/lecture-slides/lecture2.3-evolution-slides.qmd) for examples)
+
+b.  Figure out how to order the drought level groups in the same way as the USDM version (i.e. level `D4` on the bottom, closet to the x-axis, and level `D0` at the top) – **Hint:** explore the `position` argument
+
+c.  Update the colors so that they match the USDM version (use Colorpick Eyedropper to grab HEX codes from the original visualization) – **Hint:** use `scale_fill_manual()` to set your new colors
+
+d.  Adjust your x-axis “breaks” (i.e. the tick mark values that represent years) – **Hint:** check out `scale_x_date()` and `scales::breaks_pretty()`
+
+e.  Adjust your y-axis “breaks” (i.e. the tick mark value that represent percentage of affected area) – **Hint:** check out `scale_y_continous()` and `scales::label_percent()`
+
+f.  Remove the “padding” (i.e. space) between your area chart and the x- and y-axes – **Hint:** check out the `expand` argument in `scale_x_date()` and `scale_y_continuous()`
+
+g.  update the plot title
+
+<!-- -->
+
+4.  Iterate on this ggplot until it closely resembles the [original USDM plot](https://eds-240-data-viz.github.io/course-materials/lab/week4-slides.qmd#recreate-plot). **Tip:** begin with a [complete theme](https://ggplot2.tidyverse.org/reference/ggtheme.html), then use `theme()` to tweak plot elements from there.
+
+```{r}
+
+# Create a stacked area chart (take a look back at lecture 2.3 slides for examples)
+
+# Figure out how to order the drought level groups in the same way as the USDM version (i.e. level D4 on the bottom, closet to the x-axis, and level D0 at the top) – Hint: explore the position argument
+# 
+# Update the colors so that they match the USDM version (use Colorpick Eyedropper to grab HEX codes from the original visualization) – Hint: use scale_fill_manual() to set your new colors
+# 
+# Adjust your x-axis “breaks” (i.e. the tick mark values that represent years) – Hint: check out scale_x_date() and scales::breaks_pretty()
+# 
+# Adjust your y-axis “breaks” (i.e. the tick mark value that represent percentage of affected area) – Hint: check out scale_y_continous() and scales::label_percent()
+# 
+# Remove the “padding” (i.e. space) between your area chart and the x- and y-axes – Hint: check out the expand argument in scale_x_date() and scale_y_continuous()
+# 
+# update the plot title
+# 
+# Iterate on this ggplot until it closely resembles the original USDM plot. Tip: begin with a complete theme, then use theme() to tweak plot elements from there.
+```

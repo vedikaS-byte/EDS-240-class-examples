@@ -1,0 +1,11 @@
+---
+title: "week4"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(metajam)
+stream <- read.csv(here::here("week4","data", "HubbardBrook_weekly_stream_chemistry_1963-2025.csv"))
+```
+

@@ -1,0 +1,70 @@
+---
+title: "lab2"
+format: html
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Week 2 Lab 2
+
+## Setup:
+
+1.  Find a partner and decide who will be Partner 1 and Partner 2
+
+2.  If you are Partner #1, copy the Partner #1 code chunk below into
+    your qmd. If you are Partner #2, copy the Partner #2 code chunk
+    below into your qmd.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(palmerpenguins)
+
+ggplot(data = penguins, aes(x = body_mass_g, fill = species)) +
+  geom_histogram(alpha = 0.5, 
+                 position = "identity") +
+  scale_fill_manual(values = c("darkorange","purple","cyan4")) +
+  labs(x = "Body mass (g)",
+       y = "Frequency",
+       title = "Penguin body masses")
+```
+
+## Keep your screen private from your partner throughout the activity!
+
+Create Alt Text:
+
+3\. Individually, run your code chunk and view the plot it produces
+
+4\. On your piece of paper, write alt text that describes your plot
+
+5\. Once you’re finished, close your laptop
+
+## Test the Alt Text:
+
+6.  Exchange papers with your partner
+7.  Read your partner’s alt text and draw the data visualization they
+    described based solely on their written description
+
+## Reflect and Revise:
+
+1.  Open your laptops and compare the drawings to the original plots
+
+2.  Discuss with your partner:
+
+    1.  How similar is the drawing to the actual plot?
+
+    2.  What key information was missing or unclear in the alt text?
+
+    3.  What details were most helpful for recreating the visualization?
+
+    4.  Based on this feedback, revise your alt text to make it more
+        complete and accurate.
+
+## Adding alt text to the plot. Now that you have revised your alt text, it is time to embed it in your plot!
+
+1.  Add alt text using the fig-alt: code chunk option
+
+2.  Render your qmd file to html “Inspect” your plot (right click \>
+    Inspect) to verify that the alt attribute and text is added to the
+    HTML

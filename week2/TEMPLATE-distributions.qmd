@@ -1,6 +1,6 @@
 ---
 title: "TEMPLATE - visualizing distributions"
-author: "Your Name"
+author: "Vedika Shirtekar"
 date: 2026-01-14
 toc: true
 ---

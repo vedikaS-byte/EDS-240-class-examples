@@ -1,0 +1,63 @@
+---
+title: "week4-lab"
+format: html
+---
+
+# Data Viz Hackathon
+
+**The following was obtained from the [README](https://github.com/EDS-240-Data-Viz/fundamental-charts-lab-data/tree/main/Spain_fires) associated with this dataset:**
+
+Background: This dataset is a synthesized master file from the Global Wildfire Information System (GWIS), a joint initiative of the European Commission and the European Space Agency. It combines three critical streams of satellite-derived data for Spain: the number of active fires, the total burnt area, and the resulting atmospheric emissions.
+
+The Data Structure:To make the analysis intuitive, all columns (except for Day) have been prefixed to identify their data source:
+
+-   `nf_` (Number of Fires): Counts of individual thermal anomalies.
+
+-   `ba_` (Burnt Area): Total surface area affected, measured in hectares
+
+-   `em_` (Emissions): Estimated carbon and trace gas release.
+
+More information and metadata can be found [here](https://gwis.jrc.ec.europa.eu/apps/gwis.statistics/seasonaltrend)
+
+Source: Data is sourced from the European Commission’s Joint Research Centre (JRC)
+
+### Read in the data
+
+```{r}
+url <- "https://github.com/EDS-240-Data-Viz/fundamental-charts-lab-data/raw/refs/heads/main/Spain_fires/spain_wildfire_joined_2025.csv"
+data <- read_csv(url)
+
+# Observe the data's characteristics
+glimpse(data)
+
+# 
+head(data)
+```
+
+### Create a visualization 
+
+```{r, fig.asp =.6}
+## Any data wrangling neccessary? 
+library(lubridate)
+library(ggExtra)
+# How have average emissions in 2025 compared to 
+data_clean <- data %>% 
+  mutate(month = month(dmy(paste0(data$day, "1000")), label = T)) %>% 
+  group_by(month) %>% 
+  summarize(month_avg = mean(em_average_2003_2025, na.rm = T), 
+                                month_avg_2025 = mean(em_year_2025, na.rm = T)) %>% 
+  pivot_longer(cols = starts_with("month_avg"), 
+               names_to = "period", 
+               values_to = "value")
+  
+
+data_clean %>% 
+  ggplot(aes(x = month, y = value, fill = period)) + 
+  geom_col(position = "dodge") +  
+  theme_minimal() + labs(x = "Month", y = "Average Emissions", title = ) + theme(legend.position = "bottom")  + scale_fill_manual(values = c(month_avg = "darkred", month_avg_2025 = "darkgreen")) 
+  
+```
+
+```{r}
+
+```
